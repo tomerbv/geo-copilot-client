@@ -1,15 +1,91 @@
-html, body { height: 100%; margin: 0; }
-#map { height: 100vh; width: 100vw; }
+/* Design tokens */
+:root {
+  --bg: #0f1115;
+  --panel: #161a22;
+  --text: #e6e8ee;
+  --muted: #98a1b3;
+  --primary: #4f46e5;
+  --primary-600: #6366f1;
+  --border: #232838;
+  --elev: 0 10px 30px rgba(0,0,0,.35);
+  --radius: 14px;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin: 0; font-family: Inter, Roboto, Arial, sans-serif; color: var(--text); background: linear-gradient(180deg, #0b0d12, #0f1115 40%); }
+
+.app-shell { height: 100vh; display: grid; grid-template-rows: auto 1fr; }
+.topbar { height: 52px; display: flex; align-items: center; gap: 10px; padding: 0 14px; border-bottom: 1px solid var(--border); background: #0b0d12bb; backdrop-filter: blur(8px); position: sticky; top: 0; z-index: 10; }
+.brand { font-weight: 700; letter-spacing: .2px; }
+.grow { flex: 1; }
+
 .panel {
-  position: absolute; top: 12px; left: 12px; z-index: 10;
-  background: rgba(18,18,18,.8); color: #fff; padding: 12px; border-radius: 12px;
-  width: min(420px, 90vw);
+  position: absolute; z-index: 5; top: 64px; left: 16px; right: 16px; margin: 0 auto; max-width: 1100px;
+  background: var(--panel); border: 1px solid var(--border); box-shadow: var(--elev); border-radius: var(--radius);
+  padding: 14px; display: flex; flex-direction: column; gap: 10px;
 }
-.panel textarea { width: 100%; min-height: 72px; }
-.panel .row { display: flex; gap: 8px; align-items: center; margin-top: 8px; }
-.badge { background:#2c7be5; border-radius: 999px; padding: 2px 10px; font-size:12px; }
-.summary {
-  position: absolute; bottom: 12px; left: 12px; right: 12px; z-index: 10;
-  background: rgba(18,18,18,.8); color:#fff; padding:12px; border-radius:12px;
-  max-height: 35vh; overflow: auto; white-space: pre-wrap;
+
+.row { display: flex; align-items: center; }
+.row.gap { gap: 12px; flex-wrap: wrap; }
+.actions { margin-top: 2px; }
+
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 260px; }
+.field.compact { min-width: 160px; }
+label { font-size: 12px; color: var(--muted); }
+input {
+  height: 40px; background: #0f1320; color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 0 12px; outline: none;
 }
+input:focus { border-color: var(--primary-600); box-shadow: 0 0 0 3px rgba(99,102,241,.25); }
+
+.badge { height: 40px; display: inline-flex; align-items: center; padding: 0 10px; border-radius: 10px; background: #0f1320; border: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+.badge.muted { color: var(--muted); }
+
+.btn { height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--border); background: #121726; color: var(--text); cursor: pointer; }
+.btn:hover { background: #151b2b; }
+.btn.primary { background: var(--primary); border-color: transparent; color: white; font-weight: 600; }
+.btn.primary:hover { background: var(--primary-600); }
+.btn.ghost { background: transparent; }
+.icon-btn { height: 32px; min-width: 32px; padding: 0 8px; border-radius: 8px; border: 1px solid var(--border); background: #121726; color: var(--text); cursor: pointer; }
+
+.hint { font-size: 12px; color: var(--muted); }
+
+.map { position: absolute; inset: 52px 0 0 0; }
+
+/* Modal dialog */
+.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.55); backdrop-filter: blur(2px); z-index: 30; }
+.modal {
+  position: fixed; left: 50%; top: 50%; transform: translate(-50%,-50%);
+  width: min(800px, calc(100vw - 32px)); max-height: min(70vh, 720px);
+  background: var(--panel); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--elev); z-index: 31;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 12px; border-bottom: 1px solid var(--border); }
+.modal-body { padding: 12px; overflow: auto; }
+.modal-footer { padding: 12px; border-top: 1px solid var(--border); display: flex; gap: 8px; justify-content: flex-end; }
+.summary { white-space: pre-wrap; }
+
+.app-shell { height: 100vh; display: grid; grid-template-rows: auto 1fr; }
+.topbar { /* unchanged */ }
+
+.sidebar {
+  position: absolute;
+  top: 64px;
+  left: 16px;
+  bottom: 16px;
+  width: 280px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  box-shadow: var(--elev);
+  border-radius: var(--radius);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  z-index: 5;
+}
+
+.actions { display: flex; flex-direction: column; gap: 8px; }
+
+.map { position: absolute; inset: 52px 0 0 0; }
+.map { margin-left: 312px; }
