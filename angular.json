@@ -1,0 +1,63 @@
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "projects": {
+    "geo-copilot-client": {
+      "projectType": "application",
+      "root": "",
+      "sourceRoot": "src",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:application",
+          "defaultConfiguration": "development",
+          "options": {
+            "outputPath": "dist/geo-copilot-client",
+            "index": "src/index.html",
+            "browser": "src/main.ts",
+            "tsConfig": "tsconfig.app.json",
+            "assets": [
+              "src/favicon.ico",
+              "src/assets",
+              {
+                "glob": "**/*",
+                "input": "node_modules/cesium/Build/Cesium",
+                "output": "assets/cesium"
+              }
+            ],
+            "polyfills": ["zone.js"],
+            "styles": ["src/styles.scss"]
+          },
+          "configurations": {
+            "development": {
+              "sourceMap": { "scripts": true, "styles": true, "vendor": true },
+              "optimization": false
+            },
+            "production": {
+              "sourceMap": false,
+              "optimization": true
+            }
+          }
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "defaultConfiguration": "development",
+          "options": {
+            "buildTarget": "geo-copilot-client:build"
+          },
+          "configurations": {
+            "development": {
+              "buildTarget": "geo-copilot-client:build:development"
+            },
+            "production": {
+              "buildTarget": "geo-copilot-client:build:production"
+            }
+          }
+        }
+      }
+    }
+  },
+  "defaultProject": "geo-copilot-client",
+  "cli": {
+    "analytics": false
+  }
+}
