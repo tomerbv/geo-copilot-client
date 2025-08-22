@@ -1,5 +1,5 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild, signal } from '@angular/core';
-import { HttpClientModule } from '@angular/common/http';
+import { AfterViewInit, Component, ElementRef, OnDestroy, ViewChild, ChangeDetectorRef } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService, LatLon } from './api.service';
 import { environment } from '../environments/environment';
@@ -10,24 +10,33 @@ import * as Cesium from 'cesium';
 @Component({
   standalone: true,
   selector: 'app-root',
-  imports: [HttpClientModule, FormsModule],
+  imports: [CommonModule, FormsModule],
   template: `
     <div class="panel">
-      <div class="row"><span class="badge">Mode</span>
-        <span>{{ pointA() ? (pointB() ? 'A → B (route)' : 'A set (chat)') : 'Click map to set A' }}</span>
+      <div class="row">
+        <span class="badge">Mode</span>
+        <span>{{ pointA ? (pointB ? 'A → B (route)' : 'A set (chat)') : 'Click map to set A' }}</span>
       </div>
+
       <div class="row">
         <textarea [(ngModel)]="prompt" placeholder="Trip prompt..."></textarea>
       </div>
+
       <div class="row">
         <button (click)="go()" [disabled]="loading">{{ loading ? 'Working…' : 'Go' }}</button>
         <button (click)="clear()" [disabled]="loading">Clear</button>
       </div>
+
+      <div class="row" style="font-size:12px;opacity:.8">
+        Click once to set <b>A</b>; click again to set <b>B</b>. One point calls <code>/api/chat</code>, two points call <code>/api/route</code>.
+      </div>
     </div>
+
     <div #map id="map"></div>
-    <div class="summary" *ngIf="summary()">
-      <div><b>Result</b></div>
-      <div>{{ summary() }}</div>
+
+    <div class="summary" *ngIf="summary">
+      <div style="margin-bottom:8px; font-weight:600;">Result</div>
+      <div>{{ summary }}</div>
     </div>
   `,
 })
@@ -38,14 +47,14 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   prompt = '';
   loading = false;
 
-  pointA = signal<LatLon | null>(null);
-  pointB = signal<LatLon | null>(null);
-  summary = signal<string>('');
+  pointA: LatLon | null = null;
+  pointB: LatLon | null = null;
+  summary = '';
 
   pinA?: Cesium.Entity;
   pinB?: Cesium.Entity;
 
-  constructor(private api: ApiService) {}
+  constructor(private api: ApiService, private cdr: ChangeDetectorRef) {}
 
   ngAfterViewInit(): void {
     (window as any).CESIUM_BASE_URL = '/assets/cesium';
@@ -64,20 +73,21 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     handler.setInputAction((movement: any) => {
       const cartesian = this.viewer.camera.pickEllipsoid(movement.position, this.viewer.scene.globe.ellipsoid);
       if (!cartesian) return;
+
       const carto = Cesium.Cartographic.fromCartesian(cartesian);
       const lat = Cesium.Math.toDegrees(carto.latitude);
       const lon = Cesium.Math.toDegrees(carto.longitude);
 
-      if (!this.pointA()) {
-        this.pointA.set({ lat, lon });
-        this.addOrMovePin('A', { lat, lon });
-      } else if (!this.pointB()) {
-        this.pointB.set({ lat, lon });
-        this.addOrMovePin('B', { lat, lon });
+      if (!this.pointA) {
+        this.pointA = { lat, lon };
+        this.addOrMovePin('A', this.pointA);
+      } else if (!this.pointB) {
+        this.pointB = { lat, lon };
+        this.addOrMovePin('B', this.pointB);
       } else {
         this.clear();
-        this.pointA.set({ lat, lon });
-        this.addOrMovePin('A', { lat, lon });
+        this.pointA = { lat, lon };
+        this.addOrMovePin('A', this.pointA);
       }
       this.viewer.scene.requestRender();
     }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
@@ -88,7 +98,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     const posProp = new Cesium.ConstantPositionProperty(cart);
 
     const appearance = {
-      position: posProp, // <-- PositionProperty, not Cartesian3
+      position: posProp,
       point: { pixelSize: 12 },
       label: {
         text: which, pixelOffset: new Cesium.Cartesian2(0, -18),
@@ -117,27 +127,42 @@ export class AppComponent implements AfterViewInit, OnDestroy {
   }
 
   go() {
-    if (!this.pointA()) return;
-    this.loading = true; this.summary.set('');
-    const A = this.pointA()!;
-    const B = this.pointB();
+    if (!this.pointA) return;
+    this.loading = true;
+    this.summary = '';
+
+    const A = this.pointA!;
+    const B = this.pointB;
+
     const req = B
       ? this.api.route(A, B, this.prompt || '')
       : this.api.chat(A, this.prompt || '');
+
     req.subscribe({
-      next: (res) => { this.summary.set(res.summary || '(empty)'); this.viewer.scene.requestRender(); },
-      error: (err) => { this.summary.set(`Error: ${err?.message || 'request failed'}`); },
+      next: (res) => {
+        this.summary = res.summary || '(empty)';
+        // Ensure UI updates immediately
+        this.cdr.detectChanges();
+        this.viewer.scene.requestRender();
+      },
+      error: (err) => {
+        this.summary = `Error: ${err?.message || 'request failed'}`;
+        this.cdr.detectChanges();
+      },
       complete: () => (this.loading = false),
     });
   }
 
   clear() {
-    this.pointA.set(null); this.pointB.set(null);
+    this.pointA = null;
+    this.pointB = null;
     if (this.pinA) { this.viewer.entities.remove(this.pinA); this.pinA = undefined; }
     if (this.pinB) { this.viewer.entities.remove(this.pinB); this.pinB = undefined; }
-    this.summary.set('');
+    this.summary = '';
     this.viewer.scene.requestRender();
   }
 
-  ngOnDestroy(): void { if (this.viewer) { this.viewer.destroy(); } }
+  ngOnDestroy(): void {
+    if (this.viewer) this.viewer.destroy();
+  }
 }
