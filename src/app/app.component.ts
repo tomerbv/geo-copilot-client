@@ -13,33 +13,36 @@ import * as Cesium from 'cesium';
   template: `
     <div class="app-shell">
       <header class="topbar">
-        <div class="brand">Geo‑Copilot</div>
+        <div class="brand">Geo-Copilot</div>
         <div class="grow"></div>
-        <button class="btn ghost" (click)="resetView()" title="Reset view">⤾ Reset</button>
+        <button class="btn ghost" (click)="focusView()" [ngClass]="{ 'disabled': !pointA && !pointB }" title="Focus">Focus View</button>
       </header>
 
       <div class="sidebar">
-        <div class="field">
-          <label>Prompt (optional)</label>
-          <input [(ngModel)]="prompt" placeholder="e.g. Plan a 2‑hour walk with views" />
-        </div>
-        <div class="field compact">
-          <label>Point A</label>
-          <div class="badge" [class.muted]="!pointA">{{ pointA ? toLabel(pointA) : '—' }}</div>
-        </div>
-        <div class="field compact">
-          <label>Point B</label>
-          <div class="badge" [class.muted]="!pointB">{{ pointB ? toLabel(pointB) : '—' }}</div>
-        </div>
-
-        <div class="actions">
-          <button class="btn primary" (click)="run()" [disabled]="loading || !pointA">{{ loading ? 'Working…' : (pointB ? 'Plan route A→B' : 'Ask about A') }}</button>
-          <button class="btn" (click)="clear()" [disabled]="loading && !pointA && !pointB">Clear</button>
+        <div class="scroll">
+          <div class="field">
+            <label>Prompt (optional)</label>
+            <textarea [(ngModel)]="prompt" placeholder="e.g. Plan a 2-hour walk with views"></textarea>
+          </div>
+          <div class="field compact">
+            <label>Point A</label>
+            <div class="badge" [class.muted]="!pointA">{{ pointA ? toLabel(pointA) : '—' }}</div>
+          </div>
+          <div class="field compact">
+            <label>Point B</label>
+            <div class="badge" [class.muted]="!pointB">{{ pointB ? toLabel(pointB) : '—' }}</div>
+          </div>
         </div>
 
-        <div class="hint">
-          Click the map to set <strong>A</strong>, click again to set <strong>B</strong>.
-          When A and B are set, another click will clear the selection.
+        <div class="bottom">
+          <div class="actions">
+            <button class="btn primary" (click)="run()" [disabled]="loading || !pointA">{{ loading ? 'Working…' : (pointB ? 'Plan route A→B' : 'Ask about A') }}</button>
+            <button class="btn" (click)="clear()" [ngClass]="{ 'disabled': !pointA && !pointB }" [disabled]="loading && !pointA && !pointB">Clear</button>
+          </div>
+          <div class="hint">
+            Click the map to set <strong>A</strong>, click again to set <strong>B</strong>.
+            When A and B are set, another click will clear the selection.
+          </div>
         </div>
       </div>
 
@@ -236,7 +239,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     this.summary = '';
   }
 
-  resetView() {
+  focusView() {
     this.viewer.flyTo(this.viewer.entities, { duration: 0.6 }).catch(() => {
       this.viewer.camera.flyHome(0.6);
     });
