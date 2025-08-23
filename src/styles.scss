@@ -110,3 +110,32 @@ textarea:focus { border-color: var(--primary-600); box-shadow: 0 0 0 3px rgba(99
 .actions { display: flex; flex-direction: column; gap: 8px; }
 
 .map { position: absolute; inset: 52px 0 0 0; margin-left: 328px; }
+
+.loading-overlay {
+  position: absolute; inset: 52px 0 0 0; /* adjust top inset if you have a header */
+  display: grid; place-items: center; pointer-events: none;
+}
+.spinner {
+  width: 42px; height: 42px;
+  border: 4px solid rgba(255,255,255,0.15);
+  border-top-color: rgba(255,255,255,0.7);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+.spinner.inline {
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 6px;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-text { margin-top: 10px; font-size: 14px; opacity: .8; text-align: center; }
+@keyframes spin { to { transform: rotate(360deg); } }

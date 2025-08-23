@@ -21,7 +21,7 @@ import * as Cesium from 'cesium';
       <div class="sidebar">
         <div class="scroll">
           <div class="field">
-            <label>Prompt (optional)</label>
+            <label>Question / instructions (optional)</label>
             <textarea [(ngModel)]="prompt" placeholder="e.g. Plan a 2-hour walk with views"></textarea>
           </div>
           <div class="field compact">
@@ -36,7 +36,15 @@ import * as Cesium from 'cesium';
 
         <div class="bottom">
           <div class="actions">
-            <button class="btn primary" (click)="run()" [disabled]="loading || !pointA">{{ loading ? 'Working…' : (pointB ? 'Plan route A→B' : 'Ask about A') }}</button>
+            <button class="btn primary" (click)="run()" [disabled]="loading || !pointA">
+              <ng-container *ngIf="loading; else buttonText">
+                <span class="spinner inline"></span>
+                Working…
+              </ng-container>
+              <ng-template #buttonText>
+                {{ pointB ? 'Plan route A→B' : 'Ask about A' }}
+              </ng-template>
+            </button>
             <button class="btn" (click)="clear()" [ngClass]="{ 'disabled': !pointA && !pointB }" [disabled]="loading && !pointA && !pointB">Clear</button>
           </div>
           <div class="hint">
