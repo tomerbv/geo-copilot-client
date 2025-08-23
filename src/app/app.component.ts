@@ -15,7 +15,13 @@ import * as Cesium from 'cesium';
       <header class="topbar">
         <div class="brand">Geo-Copilot</div>
         <div class="grow"></div>
-        <button class="btn ghost" (click)="focusView()" [ngClass]="{ 'disabled': !pointA && !pointB }" title="Focus">Focus View</button>
+        <button class="btn ghost"
+                [class.disabled]="!pointA && !pointB"
+                [disabled]="!pointA && !pointB"
+                (click)="focusView()"
+                title="Focus">
+          Focus View
+        </button>
       </header>
 
       <div class="sidebar">
@@ -245,6 +251,7 @@ export class AppComponent implements AfterViewInit, OnDestroy {
     if (this.pinB) { this.viewer.entities.remove(this.pinB); this.pinB = undefined; }
     if (this.arrow) { this.viewer.entities.remove(this.arrow); this.arrow = undefined; }
     this.summary = '';
+    try { this.viewer?.scene?.requestRender(); } catch {}
   }
 
   focusView() {
